@@ -111,6 +111,7 @@ td small { display: block; white-space: nowrap; }
 .coverage div b { font-size: 1.42rem; }
 .coverage div small { color: var(--light); opacity: .7; }
 .coverage details { align-self: stretch; font-size: .83rem; }
+.coverage details.accepted { grid-column: 1 / -1; border-top: 1px solid var(--dark-line); border-right: 0; }
 .coverage details ul { padding-left: 1.1rem; margin: .45rem 0; }
 .coverage details summary { color: var(--amber); }
 .lift { color: var(--amber-ink); }

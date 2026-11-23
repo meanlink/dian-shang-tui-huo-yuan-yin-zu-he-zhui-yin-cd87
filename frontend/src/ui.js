@@ -3,7 +3,7 @@ import {state} from './api.js';
 export const ROLE = {service: '售后客服', quality: '品控主管', supplier: '供应商'};
 export const WORK = {assigned: '待接单', working: '整改中', verification: '待验证', closed: '已结案'};
 export const FLAGS = {missing_batch: '缺商品批次', tag_conflict: '客诉标签互斥', uninspected: '待质检'};
-export const RUN = {ready: '待复核', queued: '计算中', blocked: '样本不足', failed: '计算失败'};
+export const RUN = {ready: '待复核', queued: '排队中', running: '计算中', blocked: '样本不足', failed: '计算失败'};
 export const DECISION = {pending: '待判断', confirmed: '已确认', dismissed: '已排除'};
 
 export function esc(text) {

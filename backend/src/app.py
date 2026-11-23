@@ -139,13 +139,19 @@ def inspect_return(ticket: str, info: Inspection, user=Depends(QUALITY)):
 @app.get('/traces')
 def runs(user=Depends(INTERNAL)):
     with connect() as db:
-        return db.execute('SELECT * FROM trace_run ORDER BY id DESC LIMIT 40').fetchall()
+        return db.execute(f'SELECT {trace.LIST_COLUMNS} FROM trace_run ORDER BY id DESC LIMIT 40').fetchall()
 
 
 @app.post('/traces', status_code=202)
 def run_trace(info: RunInput, user=Depends(QUALITY)):
     with connect() as db:
         return trace.enqueue(db, info, user['login'])
+
+
+@app.post('/traces/{run_id}/retry')
+def retry_trace(run_id: int, user=Depends(QUALITY)):
+    with connect() as db:
+        return trace.retry(db, run_id, user['login'])
 
 
 @app.get('/traces/{run_id}')
