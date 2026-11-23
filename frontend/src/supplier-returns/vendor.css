@@ -1,0 +1,10 @@
+.vendor-row { margin: 0 0 14px; padding: 16px 20px; }
+.vendor-row h2 { margin: 0 0 8px; }
+.vendor-row p { margin: 8px 0; }
+.vendor-metrics { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.vendor-metrics span { padding: 8px 12px; border-radius: 7px; background: #f1f5ed; }
+.vendor-form { margin-top: 12px; }
+.vendor-form h3 { margin: 0 0 8px; }
+.vendor-form > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px,1fr)); gap: 10px; }
+.vendor-form input, .vendor-form select { min-width: 0; width: 100%; }
+.vendor-form button { justify-self: start; }

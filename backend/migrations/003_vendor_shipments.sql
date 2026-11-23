@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS vendor_shipment (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    disposition_id bigint NOT NULL UNIQUE REFERENCES stock_disposition(id),
+    dispatch_ref text NOT NULL UNIQUE,
+    carrier text NOT NULL,
+    tracking text NOT NULL,
+    sent_qty integer NOT NULL CHECK (sent_qty > 0),
+    status text NOT NULL DEFAULT 'in_transit' CHECK (status IN ('in_transit','disputed','received')),
+    dispatched_by text NOT NULL REFERENCES staff(login),
+    dispatched_at timestamptz NOT NULL DEFAULT now(),
+    vendor_qty integer CHECK (vendor_qty >= 0 AND vendor_qty <= sent_qty),
+    vendor_ref text,
+    vendor_note text,
+    received_by text REFERENCES staff(login),
+    received_at timestamptz,
+    settled_qty integer CHECK (settled_qty >= 0 AND settled_qty <= sent_qty),
+    resolution_ref text,
+    resolution_note text,
+    UNIQUE (carrier,tracking),
+    CHECK ((status='received') = (settled_qty IS NOT NULL)),
+    CHECK ((status<>'in_transit') = (vendor_qty IS NOT NULL AND received_at IS NOT NULL))
+);

@@ -1,0 +1,79 @@
+name: return-reason-rules
+x-python: &python
+  image: ${COMPOSE_PROJECT_NAME:-return-reason-rules}-python:local
+  init: true
+  environment:
+    DATABASE_URL: postgresql://returns:${POSTGRES_PASSWORD:-returns-local-db}@db:5432/returns
+    REDIS_URL: redis://redis:6379/0
+    JWT_SECRET: ${JWT_SECRET:-demo-return-reason-rules-dev-key-please-replace}
+    SEED_DEMO: ${SEED_DEMO:-true}
+    HEARTBEAT_PATH: /state/worker.heartbeat
+  depends_on:
+    db: {condition: service_healthy}
+    redis: {condition: service_healthy}
+  volumes:
+    - analysis_state:/state
+services:
+  frontend:
+    build: ./frontend
+    container_name: ${COMPOSE_PROJECT_NAME:-return-reason-rules}-frontend
+    ports: ["127.0.0.1:${FRONTEND_PORT:-18252}:80"]
+    depends_on:
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, -qO-, 'http://127.0.0.1/api/health']
+      interval: 3s
+      timeout: 2s
+      retries: 15
+  backend:
+    <<: *python
+    build: ./backend
+    container_name: ${COMPOSE_PROJECT_NAME:-return-reason-rules}-backend
+    ports: ["127.0.0.1:${BACKEND_PORT:-19252}:8000"]
+    command: [sh, -ec, 'python -m src.db && exec uvicorn src.app:app --host 0.0.0.0 --port 8000']
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  worker:
+    <<: *python
+    pull_policy: never
+    container_name: ${COMPOSE_PROJECT_NAME:-return-reason-rules}-worker
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      backend: {condition: service_healthy}
+    command: [python, -m, src.worker]
+    healthcheck:
+      test: [CMD, python, -m, src.worker, --health]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+  db:
+    image: postgres:16-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-return-reason-rules}-db
+    environment:
+      POSTGRES_USER: returns
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-returns-local-db}
+      POSTGRES_DB: returns
+    ports: ["127.0.0.1:${DB_PORT:-17752}:5432"]
+    volumes: [return_pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD, pg_isready, -U, returns, -d, returns]
+      interval: 3s
+      timeout: 2s
+      retries: 15
+  redis:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-return-reason-rules}-redis
+    volumes: [return_redis:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 2s
+      retries: 15
+volumes:
+  return_pg:
+  return_redis:
+  analysis_state:
